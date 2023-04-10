@@ -92,7 +92,11 @@ impl Node {
         loop {
             let message = self.read_message().unwrap();
             match self.innitialise_from_message(message) {
-                Ok(response) => return response,
+                Ok(mut response) => {
+                    // Increment counter
+                    response.body.msg_id = Some(self.clock.increment());
+                    return response;
+                }
                 Err(_) => continue,
             }
         }
@@ -118,7 +122,7 @@ mod tests {
             body: RequestBody {
                 msg_id: Some(0),
                 message: MessageRequestType::Init {
-                    msg_id: 1,
+                    msg_id: 0,
                     node_id: "test_node_01".to_string(),
                     node_ids: std::vec!["test_node_01".to_string(), "test_node_02".to_string()],
                 },
@@ -127,9 +131,8 @@ mod tests {
         let res = node.innitialise_from_message(init_request);
         assert!(res.is_ok());
         let res = res.unwrap();
-
         assert_eq!(res.src, "test_node_01");
         assert_eq!(res.dst, "src_node");
-        assert_eq!(node.id, "test_node_01".to_string())
+        assert_eq!(node.id, "test_node_01".to_string());
     }
 }
