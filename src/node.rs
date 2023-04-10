@@ -110,5 +110,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_init_node() {}
+    fn test_init_node() {
+        let mut node = Node::new();
+        let init_request = Message {
+            src: "src_node".to_owned(),
+            dst: "dst_node".to_owned(),
+            body: RequestBody {
+                msg_id: Some(0),
+                message: MessageRequestType::Init {
+                    msg_id: 1,
+                    node_id: "test_node_01".to_string(),
+                    node_ids: std::vec!["test_node_01".to_string(), "test_node_02".to_string()],
+                },
+            },
+        };
+        let res = node.innitialise_from_message(init_request);
+        assert!(res.is_ok());
+        let res = res.unwrap();
+
+        assert_eq!(res.src, "test_node_01");
+        assert_eq!(res.dst, "src_node");
+        assert_eq!(node.id, "test_node_01".to_string())
+    }
 }
