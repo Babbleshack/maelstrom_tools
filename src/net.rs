@@ -33,11 +33,12 @@ impl<R: Read, W: Write, L: Write> IOHandler<R, W, L> {
 
     pub fn write(&mut self, buf: &[u8]) -> Result<()> {
         self.tx.write_all(buf).context("error writing to tx")?;
+        self.tx.write_all(b"\n").context("writing newline")?;
         self.tx.flush().context("error flushing buffer")?;
         Ok(())
     }
 
-    pub fn log(&mut self, message: String, level: LogLevel) -> Result<()> {
+    pub fn log(&mut self, message: &str, level: LogLevel) -> Result<()> {
         let message = match level {
             LogLevel::ERROR => format!("ERROR: {}", message),
             LogLevel::WARN => format!("WARNING: {}", message),

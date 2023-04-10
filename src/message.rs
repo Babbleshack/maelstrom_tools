@@ -64,7 +64,7 @@ mod tests {
         let init_message = r#"
         {
             "src":"c0",
-            "dst":"n1",
+            "dest":"n1",
             "body":{
                 "type":"init",
                 "node_id":"n1",
@@ -90,6 +90,26 @@ mod tests {
             }
             Err(e) => panic!("Error seriaising message {}", e),
         }
+    }
+
+    //INFO: Received {"id":0,"src":"c0","dest":"n1","body":{"type":"init","node_id":"n1","node_ids":["n1"],"msg_id":1}}
+    #[test]
+    fn test_err_missing_msg_id() {
+        let json = r#"
+        {
+            "id":0,
+            "src":"c0",
+            "dest":"n1",
+            "body":{
+                "type":"init",
+                "node_id":"n1",
+                "node_ids":["n1"],
+                "msg_id":1
+                }
+        }
+        "#;
+        let res: Result<Message<InitMessageType>, _> = serde_json::from_str(json);
+        assert!(res.is_ok());
     }
 
     //#[test]

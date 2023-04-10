@@ -1,4 +1,6 @@
-use crate::Body;
+use std::io::{Read, Write};
+
+use crate::{Body, LogLevel};
 
 use super::message::{Init, InitMessageType, Message};
 use super::IOHandler;
@@ -9,7 +11,11 @@ pub trait Node<MessageType> {
     fn from_init(_: Init) -> anyhow::Result<Self>
     where
         Self: Sized;
-    fn process_message(&mut self, _: Message<MessageType>) -> anyhow::Result<()>;
+    fn process_message<R: Read, W: Write, L: Write>(
+        &mut self,
+        _: Message<MessageType>,
+        output: &mut IOHandler<R, W, L>,
+    ) -> anyhow::Result<()>;
 }
 
 pub fn main_loop<N, MT>() -> anyhow::Result<()>
@@ -17,8 +23,13 @@ where
     MT: DeserializeOwned + Send + 'static,
     N: Node<MT>,
 {
-    let mut io = IOHandler::new(std::io::stdin(), std::io::stdout(), std::io::stderr());
+    let mut io = IOHandler::new(
+        std::io::stdin().lock(),
+        std::io::stdout().lock(),
+        std::io::stderr().lock(),
+    );
     let line = io.read_line().context("failed to read input")?;
+    io.log(format!("Received {}", &line).as_str(), LogLevel::INFO)?;
 
     let message: Message<InitMessageType> =
         serde_json::from_str(&line).context("failed to deserialise init messsage")?;
@@ -35,16 +46,19 @@ where
         dst: message.src,
         body: Body {
             msg_id: Some(0),
-            in_reply_to: Some(0),
+            in_reply_to: message.body.msg_id,
             message: InitMessageType::InitOk,
         },
     };
 
     let response_json = serde_json::to_string(&response).context("failed to serialise response")?;
+    io.log(
+        format!("Sending: {}", response_json).as_str(),
+        LogLevel::INFO,
+    )?;
     io.write(response_json.as_bytes())
         .context("failed sending response")?;
 
-    drop(io); // free lock
     let (tx, rx) = std::sync::mpsc::channel();
 
     let message_loop_handle = std::thread::spawn(move || {
@@ -60,7 +74,7 @@ where
     });
 
     for input in rx {
-        node.process_message(input)
+        node.process_message(input, &mut io)
             .context("failed to process message")?;
     }
 
