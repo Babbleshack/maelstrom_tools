@@ -3,9 +3,7 @@ use crate::message::RequestBody;
 use super::clock::LamportClock;
 use super::message::*;
 use super::net::{IOHandler, LogLevel};
-use serde::{Deserialize, Serialize};
-
-use std::io::{Read, Write};
+use serde::Serialize;
 
 struct Node {
     id: String,
@@ -42,14 +40,14 @@ impl Node {
         response_body.msg_id = Some(m_id);
         let resp = Message::<ResponseBody<T>> {
             src: self.id.clone(),
-            dst: dst.clone(),
+            dst,
             body: response_body.clone(),
         };
         let buf = serde_json::to_string(&resp).unwrap();
         self.io.write(buf.as_bytes()).unwrap();
     }
 
-    fn process_message(&mut self, message: &Message<RequestBody>) {}
+    fn process_message(&mut self, _message: &Message<RequestBody>) {}
 
     fn innitialise(&mut self, node_id: String, node_ids: Vec<String>) {
         self.id = node_id;
@@ -69,7 +67,7 @@ impl Node {
         &mut self,
         message: Message<RequestBody>,
     ) -> Result<Message<ResponseBody<MessageResponseType>>, String> {
-        return match message.body.message {
+        match message.body.message {
             MessageRequestType::Init {
                 msg_id,
                 node_id,
@@ -87,7 +85,7 @@ impl Node {
                 })
             }
             _ => Err("error found invalid enum".to_string()),
-        };
+        }
     }
 
     fn wait_for_init(&mut self) -> Message<ResponseBody<MessageResponseType>> {

@@ -1,7 +1,4 @@
-use std::io::{
-    self, BufRead, BufReader, BufWriter, Read, Stderr, StderrLock, Stdin, StdinLock, Stdout,
-    StdoutLock, Write,
-};
+use std::io::{BufRead, BufReader, BufWriter, StderrLock, StdinLock, StdoutLock, Write};
 
 pub enum LogLevel {
     INFO,
