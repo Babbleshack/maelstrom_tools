@@ -1,4 +1,5 @@
-use std::io::{BufRead, BufReader, BufWriter, StderrLock, StdinLock, StdoutLock, Write};
+use anyhow::{Context, Result};
+use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 
 pub enum LogLevel {
     INFO,
@@ -7,48 +8,44 @@ pub enum LogLevel {
     DEBUG,
 }
 
-pub struct IOHandler {
-    stdin: BufReader<StdinLock<'static>>,
-    stdout: BufWriter<StdoutLock<'static>>,
-    stderr: BufWriter<StderrLock<'static>>,
+pub struct IOHandler<R: Read, W: Write, L: Write> {
+    rx: BufReader<R>,
+    tx: BufWriter<W>,
+    log: BufWriter<L>,
 }
 
-impl IOHandler {
-    pub fn new() -> Self {
+impl<R: Read, W: Write, L: Write> IOHandler<R, W, L> {
+    pub fn new(rx: R, tx: W, lx: L) -> Self {
         Self {
-            stdin: BufReader::new(std::io::stdin().lock()),
-            stdout: BufWriter::new(std::io::stdout().lock()),
-            stderr: BufWriter::new(std::io::stderr().lock()),
+            rx: BufReader::new(rx),
+            tx: BufWriter::new(tx),
+            log: BufWriter::new(lx),
         }
     }
 
-    pub fn read_line(&mut self) -> std::io::Result<String> {
+    pub fn read_line(&mut self) -> Result<String> {
         let mut s = String::new();
-        self.stdin.read_line(&mut s)?;
+        self.rx
+            .read_line(&mut s)
+            .context("error reading line from rx")?;
         Ok(s.to_string())
     }
 
-    pub fn write(&mut self, buf: &[u8]) -> std::io::Result<()> {
-        self.stdout.write_all(buf)?;
-        self.stdout.flush()?;
+    pub fn write(&mut self, buf: &[u8]) -> Result<()> {
+        self.tx.write_all(buf).context("error writing to tx")?;
+        self.tx.flush().context("error flushing buffer")?;
         Ok(())
     }
 
-    pub fn log(&mut self, message: String, level: LogLevel) -> std::io::Result<()> {
+    pub fn log(&mut self, message: String, level: LogLevel) -> Result<()> {
         let message = match level {
             LogLevel::ERROR => format!("ERROR: {}", message),
             LogLevel::WARN => format!("WARNING: {}", message),
             LogLevel::INFO => format!("INFO: {}", message),
             LogLevel::DEBUG => format!("DEBUG: {}", message),
         };
-        self.stderr.write_all(message.as_bytes())?;
-        self.stderr.flush()?;
+        self.log.write_all(message.as_bytes())?;
+        self.log.flush()?;
         Ok(())
-    }
-}
-
-impl Default for IOHandler {
-    fn default() -> Self {
-        Self::new()
     }
 }

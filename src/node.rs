@@ -17,7 +17,7 @@ where
     MT: DeserializeOwned + Send + 'static,
     N: Node<MT>,
 {
-    let mut io = IOHandler::new();
+    let mut io = IOHandler::new(std::io::stdin(), std::io::stdout(), std::io::stderr());
     let line = io.read_line().context("failed to read input")?;
 
     let message: Message<InitMessageType> =
@@ -48,7 +48,7 @@ where
     let (tx, rx) = std::sync::mpsc::channel();
 
     let message_loop_handle = std::thread::spawn(move || {
-        let mut io = IOHandler::new();
+        let mut io = IOHandler::new(std::io::stdin(), std::io::stdout(), std::io::stderr());
         let line = io
             .read_line()
             .context("error reading maelstrom input from STDIN")
