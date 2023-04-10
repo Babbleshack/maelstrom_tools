@@ -101,6 +101,16 @@ impl Node {
     }
 
     fn message_loop(&mut self) {
-        let _init_response = self.wait_for_init();
+        let init_response = self.wait_for_init();
+        let response_json = serde_json::to_string(&init_response).unwrap();
+        self.io.write(response_json.as_bytes()).unwrap();
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_init_node() {}
 }

@@ -55,3 +55,9 @@ impl From<u64> for LamportClock {
         }
     }
 }
+
+impl Default for LamportClock {
+    fn default() -> Self {
+        Self::new()
+    }
+}

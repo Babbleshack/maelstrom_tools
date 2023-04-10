@@ -32,7 +32,7 @@ impl IOHandler {
     }
 
     pub fn write(&mut self, buf: &[u8]) -> std::io::Result<()> {
-        self.stdout.write(buf)?;
+        self.stdout.write_all(buf)?;
         self.stdout.flush()?;
         Ok(())
     }
@@ -44,8 +44,14 @@ impl IOHandler {
             LogLevel::INFO => format!("INFO: {}", message),
             LogLevel::DEBUG => format!("DEBUG: {}", message),
         };
-        self.stderr.write(message.as_bytes())?;
+        self.stderr.write_all(message.as_bytes())?;
         self.stderr.flush()?;
         Ok(())
+    }
+}
+
+impl Default for IOHandler {
+    fn default() -> Self {
+        Self::new()
     }
 }
