@@ -5,7 +5,7 @@ use super::message::*;
 use super::net::{IOHandler, LogLevel};
 use serde::Serialize;
 
-struct Node {
+pub struct Node {
     id: String,
     node_ids: Vec<String>,
     clock: LamportClock,
@@ -13,7 +13,7 @@ struct Node {
 }
 
 impl Node {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Node {
             id: "".to_string(),
             node_ids: Vec::new(),
@@ -22,16 +22,21 @@ impl Node {
         }
     }
 
-    fn read_message(&mut self) -> std::io::Result<Message<RequestBody>> {
+    pub fn read_message(&mut self) -> std::io::Result<Message<RequestBody>> {
         let line = self.io.read_line()?;
         self.io.log(format!("Received {}", line), LogLevel::INFO)?;
         let message: Message<RequestBody> = serde_json::from_str(&line)?;
+        self.io
+            .log("----------------------".to_string(), LogLevel::INFO)
+            .unwrap();
         let m_id = message.body.msg_id.unwrap_or(0u64);
         self.clock.fetch_set(m_id);
+        self.io
+            .log(format!("deserilised to: {:?}", message), LogLevel::INFO)?;
         Ok(message)
     }
 
-    fn write_message<T: Serialize + Clone>(
+    pub fn write_message<T: Serialize + Clone>(
         &mut self,
         dst: String,
         response_body: &mut ResponseBody<T>,
@@ -47,9 +52,9 @@ impl Node {
         self.io.write(buf.as_bytes()).unwrap();
     }
 
-    fn process_message(&mut self, _message: &Message<RequestBody>) {}
+    pub fn process_message(&mut self, _message: &Message<RequestBody>) {}
 
-    fn innitialise(&mut self, node_id: String, node_ids: Vec<String>) {
+    pub fn innitialise(&mut self, node_id: String, node_ids: Vec<String>) {
         self.id = node_id;
         self.node_ids = node_ids;
         self.io
@@ -102,7 +107,7 @@ impl Node {
         }
     }
 
-    fn message_loop(&mut self) {
+    pub fn message_loop(&mut self) {
         let init_response = self.wait_for_init();
         let response_json = serde_json::to_string(&init_response).unwrap();
         self.io.write(response_json.as_bytes()).unwrap();
