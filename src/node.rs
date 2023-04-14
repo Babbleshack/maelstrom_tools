@@ -1,4 +1,4 @@
-use std::io::{self, BufRead, BufReader, Read, Write};
+use std::io::{BufRead, Read, Write};
 
 use crate::{Body, LogLevel};
 

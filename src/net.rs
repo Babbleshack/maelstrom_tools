@@ -1,8 +1,7 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::Result;
 use std::{
-    io::{self, BufRead, BufReader, BufWriter, ErrorKind, Lines, Read, Write},
-    os::fd::AsFd,
-    sync::{Arc, Mutex, MutexGuard},
+    io::{BufReader, BufWriter, Read, Write},
+    sync::Mutex,
 };
 
 pub enum LogLevel {
