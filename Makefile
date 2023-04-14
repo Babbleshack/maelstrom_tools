@@ -1,12 +1,18 @@
 MAELSTROM=maelstrom
+MAELSTROM_TEST=$(MAELSTROM) test
+DEBUG_DIR=./target/debug
 
-.PHONY: echo clean fixup fmt lint
+ECHO_BIN=$(DEBUG_DIR)/echo
 
+.PHONY: echo test_echo clean fixup fmt lint
 
-echo: ./target/debug/echo
-	@echo "READY"
+test_echo: $(ECHO_BIN)
+	$(MAELSTROM_TEST) --log-stderr --log-net-send --log-net-recv -w echo --bin $(ECHO_BIN) --nodes n1 --rate 1 --time-limit 3
 
-./target/debug/echo:
+echo: $(ECHO_BIN)
+	$(MAELSTROM_TEST) -w echo --bin $(ECHO_BIN)
+
+$(ECHO_BIN):
 	cargo build --bin echo
 
 clean:
