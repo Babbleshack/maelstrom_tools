@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::io::{self, BufRead, BufReader, Read, Write};
 
 use crate::{Body, LogLevel};
 
@@ -23,13 +23,11 @@ where
     MT: DeserializeOwned + Send + 'static,
     N: Node<MT>,
 {
-    let mut io = IOHandler::new(
-        std::io::stdin().lock(),
-        std::io::stdout().lock(),
-        std::io::stderr().lock(),
-    );
+    let mut io = IOHandler::new(std::io::stdin(), std::io::stdout(), std::io::stderr());
+    eprint!("-----------------------");
     let line = io.read_line().context("failed to read input")?;
     io.log(format!("Received {}", &line).as_str(), LogLevel::INFO)?;
+    eprint!("-----------------------");
 
     let message: Message<InitMessageType> =
         serde_json::from_str(&line).context("failed to deserialise init messsage")?;
@@ -61,19 +59,20 @@ where
 
     let (tx, rx) = std::sync::mpsc::channel();
 
+    drop(io);
     let message_loop_handle = std::thread::spawn(move || {
         let mut io = IOHandler::new(std::io::stdin(), std::io::stdout(), std::io::stderr());
-        let line = io
-            .read_line()
-            .context("error reading maelstrom input from STDIN")
-            .unwrap();
-        let message: Message<MT> = serde_json::from_str(&line)
-            .context("deserialising message from stdin")
-            .unwrap();
-        tx.send(message).unwrap();
+        loop {
+            let line = io.read_line().unwrap();
+            let message: Message<MT> = serde_json::from_str(&line)
+                .context("deserialising message from stdin")
+                .unwrap();
+            tx.send(message).unwrap();
+        }
     });
 
     for input in rx {
+        let mut io = IOHandler::new(std::io::stdin(), std::io::stdout(), std::io::stderr());
         node.process_message(input, &mut io)
             .context("failed to process message")?;
     }
