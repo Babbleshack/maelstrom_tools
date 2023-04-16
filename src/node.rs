@@ -24,10 +24,8 @@ where
     N: Node<MT>,
 {
     let mut io = IOHandler::new(std::io::stdin(), std::io::stdout(), std::io::stderr());
-    eprint!("-----------------------");
     let line = io.read_line().context("failed to read input")?;
     io.log(format!("Received {}", &line).as_str(), LogLevel::INFO)?;
-    eprint!("-----------------------");
 
     let message: Message<InitMessageType> =
         serde_json::from_str(&line).context("failed to deserialise init messsage")?;
@@ -51,10 +49,10 @@ where
 
     let response_json = serde_json::to_string(&response).context("failed to serialise response")?;
     io.log(
-        format!("Sending: {}", response_json).as_str(),
+        format!("Sending init response: {}", response_json).as_str(),
         LogLevel::INFO,
     )?;
-    io.write(response_json.as_bytes())
+    io.write_line(response_json)
         .context("failed sending response")?;
 
     let (tx, rx) = std::sync::mpsc::channel();

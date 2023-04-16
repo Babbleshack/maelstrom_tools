@@ -1,6 +1,6 @@
 use anyhow::Result;
 use std::{
-    io::{BufReader, BufWriter, Read, Write},
+    io::{BufRead, BufReader, BufWriter, Read, Write},
     sync::Mutex,
 };
 
@@ -42,12 +42,17 @@ impl<R: Read, W: Write, L: Write> IOHandler<R, W, L> {
     }
 
     pub fn read_line(&mut self) -> Result<String> {
-        eprintln!("read_line1-----------------------");
+        let mut rx = self.rx.lock().unwrap();
         let mut buf = String::new();
-        eprintln!("-read_line1----------------------");
-        self.read_to_string(&mut buf)?;
-        eprintln!("-----------------------");
+        rx.read_line(&mut buf)?;
         Ok(buf)
+    }
+
+    pub fn write_line(&mut self, buf: String) -> Result<()> {
+        self.write(&buf.as_bytes())?;
+        self.write("\r\n".as_bytes())?;
+        self.flush()?;
+        Ok(())
     }
 }
 

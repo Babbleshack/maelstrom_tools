@@ -1,5 +1,6 @@
 use std::io::{Read, Write};
 
+use anyhow::{anyhow, Context};
 use maelstrom::message::Init;
 use maelstrom::net::IOHandler;
 use maelstrom::node::{main_loop, Node};
@@ -45,8 +46,8 @@ impl Node<EchoMessageType> for EchoNode {
             format!("Sending {}", response_json.as_str()).as_str(),
             LogLevel::INFO,
         )?;
-        io.write(response_json.as_bytes())?;
-        panic!("");
+        io.write_line(response_json)?;
+        Ok(())
     }
 }
 
