@@ -35,7 +35,9 @@ where
         _ => panic!("got invalid message type, expecting init"),
     };
 
-    let mut node: N = Node::from_init(init).context("node init failed")?;
+    let mut node: N = Node::from_init(init)?;
+
+    // TODO: handle fail, there is no fail message in protocol spec, so leave for now...
 
     let response = Message {
         src: message.dst,
