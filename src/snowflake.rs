@@ -1,3 +1,6 @@
+// Implements snowflake id
+// https://en.wikipedia.org/wiki/Snowflake_ID
+
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const EPOCH: i64 = 1612460400; // The Unix timestamp corresponding to first second of 2015
@@ -12,6 +15,11 @@ pub struct Snowflake {
     last_timestamp: u64,
 }
 
+/// Implement SnowflakeID
+/// ```
+/// let snowflake = Snowflake::new(seed: 0).into_iter();
+/// let id = snowflake.next().unwrap();
+/// ```
 impl Snowflake {
     pub fn new(seed: u64) -> Self {
         Self {
