@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MAELSTROM_PATH=$(pwd)/sbin/maelstrom
+MAELSTROM_PATH=$(pwd)/../sbin/maelstrom
 MAELSTROM_BIN=${MAELSTROM_PATH}/maelstrom
 
 if [[ ! -f $MAELSTROM_BIN ]]; then 
@@ -9,3 +9,4 @@ if [[ ! -f $MAELSTROM_BIN ]]; then
 fi
 
 export PATH=${PATH}:$MAELSTROM_PATH
+echo "maelstrom path: $(which maelstrom)"

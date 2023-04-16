@@ -9,7 +9,7 @@ ECHO_BIN=$(DEBUG_DIR)/echo
 test_echo: $(ECHO_BIN)
 	$(MAELSTROM_TEST) --log-stderr --log-net-send --log-net-recv -w echo --bin $(ECHO_BIN) --nodes n1 --rate 1 --time-limit 3
 
-echo: $(ECHO_BIN)
+echo: clean $(ECHO_BIN)
 	$(MAELSTROM_TEST) -w echo --bin $(ECHO_BIN)
 
 $(ECHO_BIN):
